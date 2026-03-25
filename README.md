@@ -4,7 +4,7 @@
 [![Licencia](https://img.shields.io/badge/Licencia-MIT-green)](LICENSE)
 [![Estado](https://img.shields.io/badge/Estado-v1.0.0-brightgreen)](CHANGELOG.md)
 
-Implementación en Python de un Modelo de Equilibrio General Computable (MEGC) orientado al **análisis de políticas económicas** y la **evaluación de proyectos de infraestructura**. Desarrollado como alternativa de código abierto a implementaciones en GAMS, eliminando la necesidad de licencias comerciales.
+Implementación en Python de un Modelo de Equilibrio General Computable (MEGC) orientado al **análisis de políticas económicas** y la **evaluación de proyectos de infraestructura**. Desarrollado como alternativa de código abierto.
 
 ---
 
@@ -30,7 +30,7 @@ El MEGC permite simular los efectos económicos de intervenciones de política, 
 - **Evaluación de proyectos de infraestructura**: estimación de efectos macroeconómicos y sectoriales de inversiones en transporte, energía, conectividad, etc.
 - **Shocks externos**: variaciones en precios internacionales, tipo de cambio o demanda agregada.
 
-El modelo parte de una **Matriz de Contabilidad Social (SAM)** calibrada para la economía de referencia y resuelve el sistema de equilibrio general mediante optimización numérica en Python.
+El modelo parte de una **Matriz de Contabilidad Social (SAM)** calibrada para la economía antioqueña y resuelve el sistema de equilibrio general mediante optimización numérica en Python.
 
 ---
 
@@ -213,13 +213,13 @@ python examples/ejemplo_politica_fiscal.py
 
 ## Equipo y contacto
 
-Este modelo fue desarrollado por **[Nombre del equipo / organización]**.
+Este modelo fue desarrollado por **[Diego Quintero / Universidad Eafit]**.
 
 Para soporte técnico, reporte de errores o solicitud de los archivos de datos:
 
-- **Correo:** contacto@equipo.com
+- **Correo:** daquinterr@eafit.edu.co
 - **Issues:** Utilice la pestaña [Issues](../../issues) de este repositorio para reportar problemas
 
 ---
 
-*Desarrollado en Python como alternativa de código abierto a implementaciones en GAMS.*
+*Desarrollado en Python como alternativa de código abierto.*

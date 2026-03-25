@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEGC — Modelo de Equilibrio General Computable</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #f0883e;
+    --tag-bg: rgba(88,166,255,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(88,166,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(88,166,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* Header */
+  header {
+    padding: 64px 0 48px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .header-desc {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  /* Meta pills */
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .meta-pill strong { color: var(--text); font-weight: 500; }
+
+  /* Badges */
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    border: 1px solid;
+  }
+  .badge-blue { background: rgba(88,166,255,0.1); border-color: rgba(88,166,255,0.3); color: #58a6ff; }
+  .badge-green { background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.3); color: #3fb950; }
+  .badge-orange { background: rgba(240,136,62,0.1); border-color: rgba(240,136,62,0.3); color: #f0883e; }
+
+  /* CTA button */
+  .btn-github {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border-hover);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-github:hover {
+    background: rgba(88,166,255,0.1);
+    border-color: rgba(88,166,255,0.4);
+    color: var(--accent);
+  }
+  .btn-github svg { flex-shrink: 0; }
+
+  /* Main grid */
+  main { padding: 48px 0 80px; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.55;
+  }
+  .card-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .card-list li a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    padding: 5px 0;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .card-list li a:hover { border-bottom-color: var(--accent); }
+  .card-list li a .icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+  .card-note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Divider label */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Warning card */
+  .card-warning {
+    background: rgba(240,136,62,0.06);
+    border-color: rgba(240,136,62,0.2);
+    grid-column: 1 / -1;
+  }
+  .card-warning .card-title { color: var(--accent3); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  header { animation: fadeUp 0.5s ease both; }
+  .card  { animation: fadeUp 0.5s ease both; }
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.10s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.20s; }
+  .card:nth-child(5) { animation-delay: 0.25s; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-label">Python · Economía aplicada</div>
+    <h1>MEGC — Modelo de<br><em>Equilibrio General</em><br>Computable</h1>
+    <p class="header-desc">
+      Herramienta de análisis económico para la evaluación de políticas públicas y proyectos
+      de infraestructura. Implementación en Python de código abierto, sin dependencias de licencias comerciales.
+    </p>
+
+    <div class="meta-row">
+      <div class="meta-pill"><strong>Versión</strong> 1.0.0</div>
+      <div class="meta-pill"><strong>Lenguaje</strong> Python 3.9+</div>
+      <div class="meta-pill"><strong>Licencia</strong> MIT</div>
+      <div class="meta-pill"><strong>Requiere</strong> SAM + datos del equipo</div>
+    </div>
+
+    <div class="badges">
+      <span class="badge badge-blue">numpy · scipy · pandas</span>
+      <span class="badge badge-green">análisis de políticas</span>
+      <span class="badge badge-orange">infraestructura</span>
+    </div>
+
+    <a class="btn-github" href="https://github.com/tu-usuario/MEGC-modelo" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      Ver repositorio en GitHub
+    </a>
+  </header>
+
+  <main>
+    <p class="section-label">Recursos del proyecto</p>
+    <div class="grid">
+
+      <!-- Documentación -->
+      <div class="card">
+        <div class="card-title">Documentación</div>
+        <div class="card-desc">Guías de uso, fundamentos del modelo e interpretación de resultados.</div>
+        <ul class="card-list">
+          <li>
+            <a href="docs/manual_usuario.md">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A2.5 2.5 0 013.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5H11V1H3.5A1 1 0 003 2.5v11a1 1 0 001.5.87V11a.75.75 0 011.5 0v3.5a.75.75 0 01-.75.75H3.5A2.5 2.5 0 011 13.5z"/></svg>
+              Manual de usuario
+            </a>
+          </li>
+          <li>
+            <a href="README.md">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75z"/></svg>
+              README.md
+            </a>
+          </li>
+          <li>
+            <a href="CHANGELOG.md">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm.5 4.75a.75.75 0 00-1.5 0v3.5a.75.75 0 00.471.696l2.5 1a.75.75 0 10.557-1.392L8.5 7.742V4.75z"/></svg>
+              CHANGELOG.md
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Código fuente -->
+      <div class="card">
+        <div class="card-title">Código fuente</div>
+        <div class="card-desc">Módulos principales del modelo y ejemplos reproducibles.</div>
+        <ul class="card-list">
+          <li>
+            <a href="https://github.com/tu-usuario/MEGC-modelo/tree/main/src">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75z"/></svg>
+              src/ — núcleo del modelo
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/tu-usuario/MEGC-modelo/tree/main/examples">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8.878.392a1.75 1.75 0 00-1.756 0l-5.25 3.045A1.75 1.75 0 001 5.049v5.91c0 .896.446 1.567 1.124 1.940l5.256 2.99a1.75 1.75 0 001.756 0l5.256-2.99A2.25 2.25 0 0015 10.96V5.049a1.75 1.75 0 00-.872-1.612z"/></svg>
+              examples/ — casos de uso
+            </a>
+          </li>
+          <li>
+            <a href="requirements.txt">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 2.75a.25.25 0 01.25-.25h12.5a.25.25 0 01.25.25v8.5a.25.25 0 01-.25.25h-6.5a.75.75 0 00-.53.22L4.5 14.44v-2.19a.75.75 0 00-.75-.75H1.75a.25.25 0 01-.25-.25z"/></svg>
+              requirements.txt
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Configuración -->
+      <div class="card">
+        <div class="card-title">Configuración de escenarios</div>
+        <div class="card-desc">Archivos YAML para definir políticas y cierres macroeconómicos.</div>
+        <ul class="card-list">
+          <li>
+            <a href="https://github.com/tu-usuario/MEGC-modelo/tree/main/config">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M6.368 1.149a.75.75 0 00-1.36-.294L3.625 3H1.75a.75.75 0 000 1.5h1.126L1.5 7.125A.75.75 0 002.25 8h.257L1.21 11.037a.75.75 0 101.38.588L4.063 8h1.624l-1.462 3.625a.75.75 0 101.38.588L7.063 8H8.75a.75.75 0 000-1.5H7.874L9.25 3H11a.75.75 0 000-1.5H9.875l-.5-1.351a.75.75 0 10-1.4.518l.374 1.013-.649 1.57H6.5l.65-1.57-.782-1.531z"/></svg>
+              config/ — parámetros del modelo
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/tu-usuario/MEGC-modelo/blob/main/config/escenarios/escenario_base.yaml">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75z"/></svg>
+              escenario_base.yaml
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/tu-usuario/MEGC-modelo/blob/main/config/escenarios/ejemplo_infraestructura.yaml">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75z"/></svg>
+              ejemplo_infraestructura.yaml
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Instalación rápida -->
+      <div class="card">
+        <div class="card-title">Instalación rápida</div>
+        <div class="card-desc">Tres comandos para tener el modelo funcionando.</div>
+        <ul class="card-list">
+          <li>
+            <a href="README.md#instalación">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8.75.75a.75.75 0 00-1.5 0V5.5H2.75a.75.75 0 000 1.5h4.5v4.75a.75.75 0 001.5 0V7h4.75a.75.75 0 000-1.5H8.75V.75z"/></svg>
+              Guía de instalación completa
+            </a>
+          </li>
+          <li>
+            <a href="README.md#cómo-ejecutar-el-modelo">
+              <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zM4.5 7.5a.5.5 0 000 1h5.793l-2.147 2.146a.5.5 0 00.708.708l3-3a.5.5 0 000-.708l-3-3a.5.5 0 10-.708.708L10.293 7.5H4.5z"/></svg>
+              Cómo ejecutar un escenario
+            </a>
+          </li>
+        </ul>
+        <div class="card-note">
+          Requiere Python 3.9+ y los archivos de datos entregados por el equipo técnico.
+        </div>
+      </div>
+
+      <!-- Aviso datos -->
+      <div class="card card-warning">
+        <div class="card-title">⚠ Bases de datos requeridas — no incluidas en el repositorio</div>
+        <div class="card-desc">
+          El modelo depende de archivos de datos externos (SAM, elasticidades, datos sectoriales)
+          construidos por el equipo técnico. Estos archivos <strong>no están en este repositorio</strong>
+          por razones de confidencialidad y tamaño. Son entregados directamente al cliente junto con este repositorio.<br><br>
+          Una vez recibidos, ubíquelos en la carpeta <code style="font-family:'DM Mono',monospace; font-size:12px; background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px;">data/</code> en la raíz del proyecto.
+          Consulte el manual de usuario para más detalles.
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>MEGC v1.0.0 &nbsp;·&nbsp; Python &nbsp;·&nbsp; MIT License &nbsp;·&nbsp;
+    <a href="https://github.com/tu-usuario/MEGC-modelo">github.com/tu-usuario/MEGC-modelo</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
